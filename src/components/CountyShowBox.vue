@@ -23,8 +23,11 @@ export default {
 <template>
   <div class="county-box">
     <div class="county-box__title">
-      <p>選擇縣市</p>
-      {{ county.zh_name }}
+      <div class="county-box__title-fav">加</div>
+      <div class="county-box__title-word">
+        <p>選擇縣市</p>
+        {{ county.zh_name }}
+      </div>
     </div>
     <div class="county-box__desc">說明</div>
   </div>
@@ -35,26 +38,53 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  &__title,
+  &__desc {
+    background-color: white;
+    border-radius: 5px;
+    &:hover {
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    }
+  }
   &__title {
-    border: 2px solid white;
+    display: flex;
+    align-items: center;
     height: 10vh;
     width: 15vw;
-    border-radius: 5px;
     margin-bottom: 10%;
-    color: white;
-    font-weight: bolder;
-    font-size: 20px;
-    text-align: center;
-    p {
-      font-size: 15px;
+    &-word {
+      color: $--app-color-word;
+      font-size: 20px;
+      border-left: 2px dotted $--app-color-primary;
+      padding-left: 5%;
+      font-weight: bolder;
+      p {
+        font-size: 10px;
+      }
+    }
+    &-fav {
+      margin: 0 5%;
+      font-weight: bolder;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $--app-color-brown;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      border: 2px solid $--app-color-brown;
+      cursor: pointer;
+      &:hover {
+        color: white;
+        background-color: $--app-color-brown;
+      }
     }
   }
   &__desc {
     height: 30vh;
     width: 30vw;
     max-width: 350px;
-    border: 2px solid white;
-    border-radius: 5px;
     font-weight: bolder;
     color: white;
     font-size: 15px;

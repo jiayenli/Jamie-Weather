@@ -17,12 +17,7 @@ export default {
 </script>
 
 <template>
-  <svg
-    id="taiwan-county"
-    data-name="圖層 1"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 595.28 841.89"
-  >
+  <svg id="taiwan-county" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 595.28 841.89">
     <path
       @click="$emit('changeCounty', county.name)"
       :class="{ 'taiwan-county-active': county.name === selectedCounty }"
@@ -44,11 +39,12 @@ export default {
     transition: 0.5s;
     cursor: pointer;
     &:hover {
-      fill: #bdad98;
+      fill: white;
+      opacity: 0.7;
     }
   }
   path.taiwan-county-active {
-    fill: #89755d;
+    fill: $--app-color-word;
   }
 }
 </style>

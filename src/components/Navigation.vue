@@ -1,18 +1,21 @@
 <script>
 export default {
-  props: {
-    activeIndex: {
-      type: Number,
-      default: 0
-    }
-  },
   data() {
     return {
       menu: [
-        { path: '/', name: '地圖首頁' },
-        { path: '/weather-detail', name: '天氣圖表' },
+        { path: '/taiwan-weather', name: '台灣氣象' },
+        { path: '/world-weather', name: '全球氣象' },
         { path: '/contact', name: '聯繫我們' }
-      ]
+      ],
+      activePage: ''
+    }
+  },
+  mounted() {
+    this.activePage = this.$route.path
+  },
+  watch: {
+    '$route.path'(value) {
+      this.activePage = value
     }
   }
 }
@@ -20,14 +23,14 @@ export default {
 
 <template>
   <nav class="desktop-nav">
-    <img class="desktop-nav__logo" src="@/assets/jw_logo_black.png" />
+    <img class="desktop-nav__logo" src="@/assets/jw_logo_white.png" />
     <div>
       <div
-        :class="['desktop-nav__item', { active: activeIndex === index }]"
+        :class="['desktop-nav__item', { active: activePage === item.path }]"
         v-for="(item, index) in menu"
         :key="`menu_${index}`"
       >
-        <RouterLink to="/">{{ item.name }}</RouterLink>
+        <RouterLink :to="item.path">{{ item.name }}</RouterLink>
         <div v-show="index + 1 !== menu.length" class="desktop-nav__line" />
       </div>
     </div>
@@ -48,8 +51,12 @@ export default {
   justify-content: space-between;
 
   &__logo {
-    width: 100%;
+    width: 70%;
     object-fit: contain;
+    border: 2px $--app-color-word solid;
+    padding: 3%;
+    border-radius: 5px;
+    background-color: $--app-color-word;
   }
   &__line {
     height: 50px;
@@ -81,8 +88,8 @@ export default {
   }
   &__item.active {
     &::before {
-      background-color: $--app-color-primary;
-      border: 2px $--app-color-primary solid;
+      background-color: $--app-color-brown;
+      border: 2px $--app-color-brown solid;
     }
     a {
       color: $--app-color-primary;

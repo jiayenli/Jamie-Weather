@@ -6,3 +6,34 @@ a {
 a:hover {
     color: $--app-color-primary;
 }
+
+input {
+    height: 35px;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+    color: $--app-color-word;
+    font-size: 15px;
+    font-weight: bolder;
+
+    &:focus {
+        border: none;
+    }
+}
+
+button {
+    height: 35px;
+    min-width: 35px;
+    background-color: transparent;
+    border-radius: 50%;
+    border: 2px solid $--app-color-brown;
+    color: $--app-color-brown;
+    font-weight: bolder;
+    cursor: pointer;
+    transition-duration: 0.3s;
+
+    &:hover {
+        background-color: $--app-color-brown;
+        color: white;
+    }
+}
