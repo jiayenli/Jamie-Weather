@@ -3,8 +3,8 @@ export default {
   data() {
     return {
       menu: [
-        { path: '/taiwan-weather', name: '台灣氣象' },
-        { path: '/world-weather', name: '全球氣象' },
+        { path: '/', name: '目前天氣' },
+        { path: '/weather-forecast', name: '氣象預測' },
         { path: '/contact', name: '聯繫我們' }
       ],
       activePage: ''
@@ -83,7 +83,7 @@ export default {
       font-weight: bolder;
       -webkit-writing-mode: vertical-lr;
       writing-mode: vertical-lr;
-      letter-spacing: 1vh;
+      letter-spacing: 0.6vh;
     }
   }
   &__item.active {

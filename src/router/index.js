@@ -6,23 +6,17 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: to => {
-        return { path: '/taiwan-weather' }
-      },
-    },
-    {
-      path: '/',
       name: 'home',
       component: HomeView
     },
     {
-      path: '/taiwan-weather',
-      name: 'taiwan-weather',
+      path: '/weather-forecast',
+      name: 'weather-forecast',
       component: HomeView
     },
     {
-      path: '/world-weather',
-      name: 'world-weather',
+      path: '/contact',
+      name: 'contact',
       component: HomeView
     }
   ]

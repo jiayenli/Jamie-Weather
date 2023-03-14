@@ -6,7 +6,10 @@ const apiHelper = axios.create({
 })
 
 export default {
-    getWorldWeather({ q }) {
+    getWeathers({ q }) {
         return apiHelper.get(`/forecast?q=${q}&lang=zh_tw&units=metric&appid=${token}`)
     },
+    getCurrentWeather({ q }) {
+        return apiHelper.get(`/weather?q=${q}&lang=zh_tw&units=metric&appid=${token}`)
+    }
 }

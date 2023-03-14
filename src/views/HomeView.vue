@@ -4,6 +4,7 @@ import CountyShowBox from '../components/CountyShowBox.vue'
 import CountryMap from '../components/CountryMap.vue'
 import OpenWeatherApis from './../apis/openWeather'
 import BarChart from '../components/BarChart.vue'
+import PieChart from '../components/PieChart.vue'
 import moment from 'moment'
 
 export default {
@@ -11,19 +12,21 @@ export default {
     CountryMap,
     Navigation,
     CountyShowBox,
-    BarChart
+    BarChart,
+    PieChart
   },
   data() {
     return {
-      activeIndex: 0,
-      county: 'taipei_city',
-      changeTheme: false,
       pathName: '',
-      worldCity: 'taipei',
-      worldCityInput: '',
-      worldWeatherData: {},
-      worldDataDateKey: [],
-      originWorldWeatherData: [],
+      changeTheme: false,
+      currentWeatherData: {},
+      forecastCity: 'Taipei',
+      inputCity: '',
+      originWeatherDatas: [],
+      weatherDataByDays: {},
+      weatherDateKeys: [],
+      averageHumidityByDays: [],
+      fourDaysWeatherDatas: [],
       dataRangeSelected: '',
       showWeatherDays: 4,
       chartType: 'max'
@@ -31,13 +34,12 @@ export default {
   },
   mounted() {
     this.pathName = this.$route.path
-    this.getWorldWeatherData()
+    this.getFourDaysWeatherData()
+    this.getCurrentWeather()
   },
   watch: {
     '$route.path'(value) {
-      // switch
       this.changeTheme = true
-      console.log(value)
       setTimeout(() => {
         this.pathName = value
       }, 750)
@@ -48,37 +50,50 @@ export default {
   },
   methods: {
     updateCounty(name) {
-      this.county = name
+      this.forecastCity = name
+      this.getCurrentWeather()
+      this.getFourDaysWeatherData()
     },
-    async getWorldWeatherData() {
+    async getCurrentWeather() {
       try {
-        let worldWeatherData = {}
-        const { data } = await OpenWeatherApis.getWorldWeather({
-          q: this.worldCityInput || this.worldCity
+        const { data } = await OpenWeatherApis.getCurrentWeather({
+          q: this.forecastCity
         })
-        const reviseDateKey = (date) => {
-          return moment.utc(date).local().format('YYYY-MM-DD')
+        console.log(data)
+        const todayDate = new Date()
+        this.currentWeatherData = {
+          time: todayDate.getHours() + ':' + todayDate.getMinutes(),
+          date:
+            todayDate.getFullYear() +
+            '年' +
+            (todayDate.getMonth() + 1) +
+            '月' +
+            todayDate.getDate() +
+            '日',
+          feels_like: data.main.feels_like,
+          humidity: data.main.humidity,
+          temp: data.main.temp,
+          temp_max: data.main.temp_max,
+          temp_min: data.main.temp_min,
+          description: data.weather[0]?.description,
+          icon: data.weather[0]?.icon
         }
-        data.list.forEach((item) => {
-          const date = reviseDateKey(item.dt_txt)
-          const itemData = {
-            date: moment.utc(item.dt_txt).local().format('YYYY-MM-DD'),
-            moment: moment.utc(item.dt_txt).local().format('HH:mm'),
-            temp_max: Math.floor(item.main.temp_max),
-            temp_min: Math.floor(item.main.temp_min),
-            humidity: item.main.humidity
-          }
-          if (worldWeatherData[`${date}`]) {
-            worldWeatherData[`${date}`].push(itemData)
-          } else {
-            this.worldDataDateKey.push(date)
-            worldWeatherData = {
-              ...worldWeatherData,
-              [date]: [itemData]
-            }
-          }
+      } catch (e) {
+        this.currentWeatherData = {}
+        console.log(e)
+      }
+    },
+    async getFourDaysWeatherData() {
+      this.weatherDataByDays = {}
+      this.weatherDateKeys = []
+      this.fourDaysWeatherDatas = []
+      this.averageHumidityByDays = []
+
+      try {
+        const { data } = await OpenWeatherApis.getWeathers({
+          q: this.forecastCity
         })
-        this.originWorldWeatherData = data.list.map((item) => {
+        this.originWeatherDatas = data.list.map((item) => {
           return {
             date: moment.utc(item.dt_txt).local().format('YYYY-MM-DD'),
             moment: moment.utc(item.dt_txt).local().format('HH:mm'),
@@ -87,22 +102,52 @@ export default {
             humidity: item.main.humidity
           }
         })
-        this.dataRangeSelected = this.worldDataDateKey[0]
+        this.sortWeatherDataBydays(this.originWeatherDatas)
         this.filterWeatherDays()
-        this.worldCity = this.worldCityInput || this.worldCity
+        this.filterHumidity()
       } catch (e) {
-        this.worldCity = '無資料'
-        this.originWorldWeatherData = []
+        this.forecastCity = '無資料'
+        this.originWeatherDatas = []
+        this.fourDaysWeatherDatas = []
         console.log(e)
       } finally {
-        this.worldCityInput = ''
+        this.inputCity = ''
       }
     },
-    filterWeatherDays() {
-      this.originWorldWeatherData = this.originWorldWeatherData.filter((item) => {
-        const filterDays = this.worldDataDateKey.slice(0, this.showWeatherDays)
-        return filterDays.includes(item.date)
+    sortWeatherDataBydays(data) {
+      let weatherDataByDays = {}
+      data.forEach((item) => {
+        if (weatherDataByDays[`${item.date}`]) {
+          weatherDataByDays[`${item.date}`].push(item)
+        } else {
+          if (this.weatherDateKeys.length >= this.showWeatherDays) {
+            return
+          }
+          this.weatherDateKeys.push(item.date)
+          weatherDataByDays = {
+            ...weatherDataByDays,
+            [item.date]: [item]
+          }
+        }
       })
+      this.weatherDataByDays = weatherDataByDays
+      this.dataRangeSelected = this.weatherDateKeys[0]
+    },
+    filterWeatherDays() {
+      this.fourDaysWeatherDatas = this.originWeatherDatas.filter((item) => {
+        return this.weatherDateKeys.includes(item.date)
+      })
+    },
+    filterHumidity() {
+      for (let key in this.weatherDataByDays) {
+        const humidities = this.weatherDataByDays[key].map((item) => {
+          return Number(item.humidity)
+        })
+        const averageHumidity =
+          humidities.reduce((accumulator, currentValue) => accumulator + currentValue) /
+          this.weatherDataByDays[key].length
+        this.averageHumidityByDays.push({ date: key, humidity: averageHumidity })
+      }
     }
   }
 }
@@ -111,39 +156,44 @@ export default {
 <template>
   <main>
     <div id="container">
-      <Navigation :activeIndex="activeIndex" />
+      <Navigation />
       <div class="container-main">
         <div class="container-main__home-page">
           <div :class="['container-transition', { active: changeTheme }]"></div>
-          <div v-if="pathName === '/taiwan-weather'" class="container-main__taiwan">
-            <CountryMap :selectedCounty="county" @changeCounty="updateCounty" />
-            <CountyShowBox :selectedCounty="county" />
+          <div v-if="pathName === '/'" class="container-main__taiwan">
+            <CountryMap :selectedCounty="forecastCity" @changeCounty="updateCounty" />
+            <CountyShowBox
+              :selectedCounty="forecastCity"
+              :currentWeatherData="currentWeatherData"
+              @updateMapCounty="updateCounty"
+            />
           </div>
-          <div v-if="pathName === '/world-weather'" class="container-main__world">
+          <div v-if="pathName === '/weather-forecast'" class="container-main__world">
             <div class="container-main__world-panel">
               <div class="container-main__world-panel-city">
                 <div class="container-main__world-panel-input">
                   <div class="container-main__world-panel-input-area">
                     <input
-                      v-model="worldCityInput"
+                      v-model="inputCity"
                       placeholder="請輸入城市英文名稱"
                       name="myfield"
+                      @keyup.enter="updateCounty(inputCity)"
                     />
                   </div>
                   <button
-                    :disabled="!worldCityInput"
-                    @click="getWorldWeatherData"
-                    :class="['container-main__world-panel-btn', { disabled: !worldCityInput }]"
+                    :disabled="!inputCity"
+                    @click="updateCounty(inputCity)"
+                    :class="['container-main__world-panel-btn', { disabled: !inputCity }]"
                   >
                     送
                   </button>
                 </div>
                 <div class="container-main__world-panel--show">
-                  {{ worldCity }}
+                  {{ forecastCity }}
                 </div>
               </div>
               <div class="container-main__world-panel-type">
-                取最近的四天資料，資料來源openweather
+                氣象預報選單 ｜ 接下來四天的天氣預測
                 <div>
                   <button
                     :class="{ 'type-active': chartType === 'max' }"
@@ -157,7 +207,12 @@ export default {
                   >
                     低溫<br />預測
                   </button>
-                  <button :class="{ 'type-active': chartType === 'hum' }">濕度<br />預測</button>
+                  <button
+                    @click="chartType = 'hum'"
+                    :class="{ 'type-active': chartType === 'hum' }"
+                  >
+                    濕度<br />預測
+                  </button>
                 </div>
               </div>
             </div>
@@ -167,7 +222,7 @@ export default {
                   'container-main__chart-btn',
                   { 'container-main__chart-btn--active': dateValue === dataRangeSelected }
                 ]"
-                v-for="(dateValue, index) in worldDataDateKey.slice(0, showWeatherDays)"
+                v-for="(dateValue, index) in weatherDateKeys.slice(0, showWeatherDays)"
                 :key="`chart-${index}`"
                 @click="dataRangeSelected = dateValue"
               >
@@ -176,10 +231,45 @@ export default {
                 </span>
               </button>
               <BarChart
-                :weatherData="originWorldWeatherData"
+                v-if="chartType === 'max' || chartType === 'min'"
+                :weatherData="fourDaysWeatherDatas"
                 :dataRangeSelected="dataRangeSelected"
                 :chartType="chartType"
               />
+              <div v-else class="container-main__chart-pie">
+                <div
+                  class="container-main__chart-pie-main"
+                  v-for="(item, index) in averageHumidityByDays"
+                  :key="`humidity-${index}`"
+                >
+                  <PieChart
+                    :hum="item.humidity"
+                    :humdeg="Math.round((item.humidity / 100) * 360)"
+                    :mainColor="item.date === dataRangeSelected ? '#9c5949' : '#cfbda5'"
+                  />
+                  <div class="container-main__chart-pie-date">{{ item.date }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="container-main__contact">
+            <img class="container-main__contact-logo" src="@/assets/jw_logo_dark.png" />
+            <div class="container-main__contact-project">
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                href="https://www.cakeresume.com/x9276550"
+                class="container-main__contact-btn"
+                >看更多網站作品</a
+              >
+              <div class="container-main__contact-line" />
+              <a
+                rel="noopener noreferrer"
+                target="_blank"
+                href="https://www.cakeresume.com/portfolios/7a1eb6"
+                class="container-main__contact-btn"
+                >看更多平面作品</a
+              >
             </div>
           </div>
         </div>
@@ -262,6 +352,7 @@ export default {
         }
       }
       &--show {
+        text-transform: Capitalize;
         font-size: 25px;
         color: $--app-color-brown;
         font-weight: bold;
@@ -279,14 +370,68 @@ export default {
         background-color: transparent;
         color: white;
         transition-duration: 0.4;
-        font-size: border;
+        span {
+          font-weight: bolder;
+        }
         &:hover {
           transform: scale(1.1);
         }
         &--active {
-          border: none;
-          background-color: #9c5949;
+          background-color: $--app-color-brown;
         }
+      }
+      &-pie {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        &-main {
+          margin-bottom: 5%;
+          text-align: center;
+        }
+        &-date {
+          margin-top: 10%;
+          font-size: 14px;
+          color: $--app-color-word;
+          font-weight: bold;
+        }
+      }
+    }
+    &__contact {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      &-logo {
+        width: 20%;
+        object-fit: contain;
+      }
+      &-line {
+        height: 80%;
+        width: 1px;
+        border-right: 2px dotted $--app-color-word;
+        margin: 0 10%;
+      }
+      &-btn {
+        white-space: nowrap;
+        cursor: pointer;
+        background-color: white;
+        padding: 5%;
+        border-radius: 10px;
+        font-size: 14px;
+        color: $--app-color-word;
+        font-weight: bold;
+        border: 2px dotted white;
+        &:hover {
+          border: 2px dotted $--app-color-word;
+          background: transparent;
+        }
+      }
+      &-project {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 5%;
       }
     }
     .county-box {

@@ -4,17 +4,55 @@ export default {
   props: {
     selectedCounty: {
       type: String,
-      default: 'taipei_city'
+      default: 'Taipei'
+    },
+    currentWeatherData: {
+      type: Object,
+      default: () => {}
     }
   },
   data() {
     return {
-      counties
+      counties,
+      mapInput: '',
+      showInputArea: false
     }
   },
-  computed: {
-    county() {
-      return this.counties.find((item) => item.name === this.selectedCounty)
+  watch: {
+    selectedCounty() {
+      this.mapInput = this.selectedCounty
+    }
+  },
+  mounted() {
+    this.mapInput = this.selectedCounty
+  },
+  methods: {
+    getMoreDatas() {
+      this.$router.push('/weather-forecast')
+    },
+    editCounty() {
+      if (this.showInputArea) {
+        this.showInputArea = false
+        return
+      }
+      this.showInputArea = true
+      this.$nextTick(() => {
+        this.$refs.countyInput.focus()
+      })
+    },
+    updateMapCounty() {
+      if (!this.mapInput.trim()) {
+        this.$refs.countyInput.blur()
+        return
+      }
+      this.$emit('updateMapCounty', this.mapInput.trim())
+      this.showInputArea = false
+    },
+    resetEditArea() {
+      this.mapInput = this.selectedCounty
+      setTimeout(() => {
+        this.showInputArea = false
+      }, 200)
     }
   }
 }
@@ -22,14 +60,44 @@ export default {
 
 <template>
   <div class="county-box">
+    <div class="county-box__tips">台灣地區可由地圖選擇，其他國家請輸入城市英文地名</div>
     <div class="county-box__title">
-      <div class="county-box__title-fav">加</div>
+      <div class="county-box__title-fav" @click="editCounty">編</div>
       <div class="county-box__title-word">
-        <p>選擇縣市</p>
-        {{ county.zh_name }}
+        <p>輸入縣市</p>
+        <div v-if="!showInputArea" @click="editCounty" class="county-box__title-county">
+          {{ selectedCounty }}
+        </div>
+        <input
+          @keyup.enter="updateMapCounty"
+          ref="countyInput"
+          @blur="resetEditArea"
+          v-else
+          v-model="mapInput"
+        />
       </div>
     </div>
-    <div class="county-box__desc">說明</div>
+    <div class="county-box__desc">
+      <div class="county-box__desc-main" v-if="currentWeatherData.temp">
+        {{ currentWeatherData.temp }}°C
+        <img :src="`https://openweathermap.org/img/wn/${currentWeatherData.icon}@2x.png`" />
+        <div class="county-box__desc-main-time">{{ currentWeatherData.date }}</div>
+      </div>
+      <div class="county-box__desc-detail" v-if="currentWeatherData.temp">
+        氣溫時間： {{ currentWeatherData.time }} <br />
+        體感溫度：{{ currentWeatherData.feels_like }}°C
+        <br />
+        最高溫度：{{ currentWeatherData.temp_max }}°C <br />
+        最低溫度：{{ currentWeatherData.temp_min }}°C<br />
+        濕度：{{ currentWeatherData.humidity }}%
+      </div>
+      <div class="county-box__desc-detail" v-if="!currentWeatherData.temp">
+        很抱歉您輸入的城市無氣象資料，請重新輸入或點選左側地圖
+      </div>
+      <p class="county-box__desc-more" @click="getMoreDatas" v-if="currentWeatherData.temp">
+        後四天{{ selectedCounty }}天氣預報 ＞＞
+      </p>
+    </div>
   </div>
 </template>
 
@@ -38,6 +106,15 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  &__tips {
+    border: 2px dotted white;
+    font-weight: bolder;
+    color: white;
+    padding: 2%;
+    font-size: 12px;
+    border-radius: 5px;
+    margin-bottom: 5%;
+  }
   &__title,
   &__desc {
     background-color: white;
@@ -52,17 +129,25 @@ export default {
     height: 10vh;
     width: 15vw;
     margin-bottom: 10%;
-    &-word {
+    &-county {
       color: $--app-color-word;
       font-size: 20px;
+      font-weight: bolder;
+      text-transform: capitalize;
+    }
+    &-word {
       border-left: 2px dotted $--app-color-primary;
       padding-left: 5%;
-      font-weight: bolder;
       p {
         font-size: 10px;
       }
+      input {
+        width: 90%;
+        border: 2px dotted $--app-color-primary !important;
+      }
     }
     &-fav {
+      flex-shrink: 0;
       margin: 0 5%;
       font-weight: bolder;
       font-size: 10px;
@@ -86,8 +171,52 @@ export default {
     width: 30vw;
     max-width: 350px;
     font-weight: bolder;
-    color: white;
+    color: $--app-color-word;
     font-size: 15px;
+    display: flex;
+    padding: 3%;
+    position: relative;
+    &-main {
+      margin-right: 3%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 10vw;
+      height: 10vw;
+      background-color: $--app-color-brown;
+      border: 2px dotted $--app-color-word;
+      font-size: 18px;
+      font-weight: bolder;
+      color: $--app-color-word;
+      border-radius: 5px;
+      img {
+        width: 70%;
+      }
+      &-time {
+        position: absolute;
+        font-size: 8px;
+        bottom: 0;
+        font-weight: bolder;
+      }
+    }
+    &-detail {
+      font-size: 12px;
+      font-weight: bolder;
+    }
+    &-more {
+      font-size: 12px;
+      font-weight: bolder;
+      position: absolute;
+      bottom: 5%;
+      right: 5%;
+      cursor: pointer;
+      padding: 2%;
+      border-radius: 10px;
+      &:hover {
+        border: 2px dotted $--app-color-word;
+      }
+    }
   }
 }
 </style>
