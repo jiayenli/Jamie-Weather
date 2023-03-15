@@ -34,6 +34,7 @@ export default {
 <style lang="scss">
 #taiwan-county {
   height: 100%;
+  display: block;
   path {
     stroke: white;
     stroke-width: 2;
