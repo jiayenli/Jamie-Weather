@@ -48,6 +48,12 @@ export default {
       }, 1500)
     }
   },
+  computed: {
+    year() {
+      const todayDate = new Date()
+      return todayDate.getFullYear()
+    }
+  },
   methods: {
     updateCounty(name) {
       this.forecastCity = name
@@ -59,17 +65,11 @@ export default {
         const { data } = await OpenWeatherApis.getCurrentWeather({
           q: this.forecastCity
         })
-        console.log(data)
         const todayDate = new Date()
         this.currentWeatherData = {
           time: todayDate.getHours() + ':' + todayDate.getMinutes(),
           date:
-            todayDate.getFullYear() +
-            '年' +
-            (todayDate.getMonth() + 1) +
-            '月' +
-            todayDate.getDate() +
-            '日',
+            todayDate.getFullYear() + '/' + (todayDate.getMonth() + 1) + '/' + todayDate.getDate(),
           feels_like: data.main.feels_like,
           humidity: data.main.humidity,
           temp: data.main.temp,
@@ -159,16 +159,22 @@ export default {
       <Navigation />
       <div class="container-main">
         <div class="container-main__home-page">
+          <img class="container-main__logo" src="@/assets/jw_logo_white.png" />
           <div :class="['container-transition', { active: changeTheme }]"></div>
-          <div v-if="pathName === '/'" class="container-main__taiwan">
-            <CountryMap :selectedCounty="forecastCity" @changeCounty="updateCounty" />
+          <div :class="['container-main__taiwan', { 'container-main__hide': pathName !== '/' }]">
+            <div class="container-main__taiwan-map">
+              <CountryMap :selectedCounty="forecastCity" @changeCounty="updateCounty" />
+            </div>
             <CountyShowBox
               :selectedCounty="forecastCity"
               :currentWeatherData="currentWeatherData"
               @updateMapCounty="updateCounty"
             />
           </div>
-          <div v-if="pathName === '/weather-forecast'" class="container-main__world">
+          <div
+            :class="{ 'container-main__hide': pathName !== '/weather-forecast' }"
+            class="container-main__world"
+          >
             <div class="container-main__world-panel">
               <div class="container-main__world-panel-city">
                 <div class="container-main__world-panel-input">
@@ -193,7 +199,7 @@ export default {
                 </div>
               </div>
               <div class="container-main__world-panel-type">
-                氣象預報選單 ｜ 接下來四天的天氣預測
+                <div class="container-main__world-panel-control">氣象選單 ｜ 未來四天預測</div>
                 <div>
                   <button
                     :class="{ 'type-active': chartType === 'max' }"
@@ -252,7 +258,10 @@ export default {
               </div>
             </div>
           </div>
-          <div v-else class="container-main__contact">
+          <div
+            :class="{ 'container-main__hide': pathName !== '/contact' }"
+            class="container-main__contact"
+          >
             <img class="container-main__contact-logo" src="@/assets/jw_logo_dark.png" />
             <div class="container-main__contact-project">
               <a
@@ -274,6 +283,7 @@ export default {
           </div>
         </div>
       </div>
+      <div class="container-copyright">copyright {{ year }} Jamie Weather all rights reserved.</div>
     </div>
   </main>
 </template>
@@ -287,6 +297,9 @@ export default {
     width: 80%;
     margin-left: 15%;
     flex-shrink: 1;
+    &__hide {
+      display: none !important;
+    }
     &__home-page {
       position: relative;
       width: 100%;
@@ -295,6 +308,7 @@ export default {
       border-radius: 40px;
       margin: 0 auto;
       overflow: hidden;
+      padding: 0 5%;
     }
     &__taiwan {
       display: flex;
@@ -302,11 +316,7 @@ export default {
       height: 80vh;
     }
     &__logo {
-      position: absolute;
-      left: 5%;
-      top: 5%;
-      width: 150px;
-      object-fit: contain;
+      display: none;
     }
     &__world-panel {
       display: flex;
@@ -329,20 +339,25 @@ export default {
         }
       }
       &-type {
+        width: 100%;
         padding-left: 5%;
-        color: $--app-color-word;
-        font-size: 15px;
-        font-weight: bolder;
         button {
-          height: 60px;
-          width: 60px;
+          height: 5vw;
+          width: 5vw;
+          min-width: 45px;
+          min-height: 45px;
           margin-right: 5%;
-          margin-top: 5%;
+          margin-top: 2%;
           &.type-active {
             background-color: $--app-color-brown;
             color: white;
           }
         }
+      }
+      &-control {
+        color: $--app-color-word;
+        font-size: 15px;
+        font-weight: bolder;
       }
       &-input {
         display: flex;
@@ -383,7 +398,7 @@ export default {
       &-pie {
         display: flex;
         justify-content: space-around;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         &-main {
           margin-bottom: 5%;
           text-align: center;
@@ -434,9 +449,6 @@ export default {
         margin-top: 5%;
       }
     }
-    .county-box {
-      margin-top: 20vh;
-    }
   }
   .container-transition {
     position: absolute;
@@ -463,6 +475,104 @@ export default {
       100% {
         width: 0;
       }
+    }
+  }
+  .container-copyright {
+    padding-top: 2%;
+    padding-left: 1%;
+    font-size: 12px;
+    font-weight: bolder;
+    -webkit-writing-mode: vertical-rl;
+    writing-mode: vertical-rl;
+  }
+  @media (max-width: 767.98px) {
+    .container-main {
+      width: 100%;
+      margin: 0;
+      &__hide {
+        display: unset !important;
+      }
+      &__home-page {
+        height: 100%;
+        overflow: visible;
+        border-radius: 0px;
+        padding: 2rem;
+      }
+      &__logo {
+        display: block;
+        width: 30%;
+        margin: 0 auto 10% auto;
+        object-fit: contain;
+        border: 2px #3b5263 solid;
+        padding: 3%;
+        border-radius: 5px;
+        background-color: #3b5263;
+      }
+      &__taiwan {
+        width: 100%;
+        height: unset;
+        display: block !important;
+      }
+      &__taiwan-map {
+        display: none;
+      }
+      &__world {
+        display: block !important;
+      }
+      &__world-panel {
+        width: 100%;
+        margin: unset;
+        margin-bottom: 5%;
+        flex-direction: column;
+        margin-top: 5%;
+        height: unset;
+        &-control {
+          display: none;
+        }
+        &-city {
+          border-right: unset;
+        }
+        &-type {
+          padding-bottom: 5%;
+          button {
+            width: 15vw;
+            height: 15vw;
+          }
+        }
+        &-input-area {
+          width: 100%;
+        }
+        &--show {
+          font-size: 45px;
+        }
+      }
+      &__mobile-hide {
+        display: none;
+      }
+      &__contact {
+        display: flex !important;
+        margin-top: 10%;
+        padding-top: 10%;
+        height: unset;
+        border-top: 2px dotted $--app-color-word;
+        &-logo {
+          margin: 0 auto;
+        }
+      }
+      &__chart {
+        padding: 0;
+        height: unset;
+        &-btn {
+          margin-bottom: 2%;
+        }
+        &-pie {
+          margin-top: 10%;
+          flex-wrap: wrap;
+        }
+      }
+    }
+    .container-copyright {
+      display: none;
     }
   }
 }

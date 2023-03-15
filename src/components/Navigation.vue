@@ -96,4 +96,9 @@ export default {
     }
   }
 }
+@media (max-width: 767.98px) {
+  .desktop-nav {
+    display: none;
+  }
+}
 </style>

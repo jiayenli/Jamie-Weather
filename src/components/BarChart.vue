@@ -112,4 +112,9 @@ export default {
     font-weight: bolder;
   }
 }
+@media (max-width: 767.98px) {
+  .weather-chart {
+    height: unset;
+  }
+}
 </style>

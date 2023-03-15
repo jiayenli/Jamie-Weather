@@ -42,6 +42,8 @@ export default {
     justify-content: center;
     width: 25vh;
     height: 25vh;
+    max-width: 13vw;
+    max-height: 13vw;
     background: conic-gradient(var(--main-color) var(--hum-rate), var(--sub-color) var(--hum-rate));
     border-radius: 50%;
     font-weight: bolder;
@@ -58,6 +60,14 @@ export default {
       100% {
         transform: scale(1, 1);
       }
+    }
+  }
+  @media (max-width: 767.98px) {
+    &-content {
+      width: 40vw;
+      height: 40vw;
+      max-width: unset;
+      max-height: unset;
     }
   }
 }

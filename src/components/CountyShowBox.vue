@@ -81,10 +81,9 @@ export default {
       <div class="county-box__desc-main" v-if="currentWeatherData.temp">
         {{ currentWeatherData.temp }}°C
         <img :src="`https://openweathermap.org/img/wn/${currentWeatherData.icon}@2x.png`" />
-        <div class="county-box__desc-main-time">{{ currentWeatherData.date }}</div>
       </div>
       <div class="county-box__desc-detail" v-if="currentWeatherData.temp">
-        氣溫時間： {{ currentWeatherData.time }} <br />
+        氣溫時間： {{ currentWeatherData.date + ' ' + currentWeatherData.time }} <br />
         體感溫度：{{ currentWeatherData.feels_like }}°C
         <br />
         最高溫度：{{ currentWeatherData.temp_max }}°C <br />
@@ -106,6 +105,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  margin-top: 20vh;
   &__tips {
     border: 2px dotted white;
     font-weight: bolder;
@@ -192,11 +192,10 @@ export default {
       border-radius: 5px;
       img {
         width: 70%;
+        flex-shrink: 1;
       }
       &-time {
-        position: absolute;
         font-size: 8px;
-        bottom: 0;
         font-weight: bolder;
       }
     }
@@ -215,6 +214,33 @@ export default {
       border-radius: 10px;
       &:hover {
         border: 2px dotted $--app-color-word;
+      }
+    }
+  }
+}
+@media (max-width: 767.98px) {
+  .county-box {
+    width: 100%;
+    margin-top: 0px;
+    &__title {
+      display: none;
+      width: 100%;
+    }
+    &__tips {
+      display: none;
+    }
+    &__desc {
+      width: 100%;
+      height: 100%;
+      max-width: unset;
+      margin-bottom: 10%;
+      &-main {
+        width: 30vw;
+        height: 30vw;
+        max-height: 100%;
+      }
+      &-more {
+        display: none;
       }
     }
   }
