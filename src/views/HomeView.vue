@@ -146,7 +146,10 @@ export default {
         const averageHumidity =
           humidities.reduce((accumulator, currentValue) => accumulator + currentValue) /
           this.weatherDataByDays[key].length
-        this.averageHumidityByDays.push({ date: key, humidity: averageHumidity })
+        this.averageHumidityByDays.push({
+          date: key,
+          humidity: Math.round(averageHumidity * 10) / 10
+        })
       }
     }
   }
