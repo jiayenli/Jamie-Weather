@@ -1,5 +1,6 @@
 import axios from 'axios'
-const token = '6123e250d58b11b1f33976e2e4c18e2e'
+const env = import.meta.env
+const token = env.VITE_APP_AUTHORIZATION_KEY
 const baseURL = 'https://api.openweathermap.org/data/2.5'
 const apiHelper = axios.create({
     baseURL

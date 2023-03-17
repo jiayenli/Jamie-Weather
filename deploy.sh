@@ -10,23 +10,39 @@ npm run build
 cd dist
 
 # place .nojekyll to bypass Jekyll processing
-echo > .nojekyll
-
 # if you are deploying to a custom domain
-# echo 'www.example.com' > CNAME
+
+echo 'jiayenli.github.io' > CNAM
+
+if [ -z "$GITHUB_TOKEN" ]; then
+
+  msg='deploy'
+
+  githubUrl=git@github.com:jiayenli/Jamie-Weather.git
+
+else
+
+  msg='github action的自動部署'
+
+  githubUrl=https://git:${GITHUB_TOKEN}@github.com/jiayenli/Jamie-Weather.git
+
+  git config --global user.name ${USER_NAME}
+
+  git config --global user.email ${USER_EMAIL}
+
+fi
 
 git init
+git branch -m main
 git add -A
 git commit -m 'deploy'
 
-#以下是兩個選項，要main分支的選擇一，要gh-pages選擇二：
 
-# 選擇一：if you are deploying to https://<USERNAME>.github.io
+# if you are deploying to https://<USERNAME>.github.io
 # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git main
 
-# 選擇二：if you are deploying to https://<USERNAME>.github.io/<REPO>
-git push -f git@github.com:jiayenli/Jamie-Weather.git main:gh-pages
+# if you are deploying to https://<USERNAME>.github.io/<REPO>
+git push -f $githubUrl main:gh-pages
 
-#這邊的分支跟你當初git push的分支要同一個，如果是master，就寫master:gh-pages
 
 cd -

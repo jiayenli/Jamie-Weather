@@ -486,7 +486,7 @@ export default {
     }
   }
   .container-copyright {
-    padding-top: 2%;
+    padding-top: 1.5%;
     padding-left: 1%;
     font-size: 12px;
     font-weight: bolder;
