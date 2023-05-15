@@ -35,6 +35,7 @@ export default {
 #taiwan-county {
   height: 100%;
   display: block;
+  max-width: 100%;
   path {
     stroke: white;
     stroke-width: 2;
