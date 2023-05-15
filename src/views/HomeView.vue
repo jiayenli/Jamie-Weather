@@ -319,9 +319,6 @@ export default {
       justify-content: center;
       height: 80vh;
       width: 100%;
-      &-map {
-        width: 30vw;
-      }
     }
     &__logo {
       display: none;
